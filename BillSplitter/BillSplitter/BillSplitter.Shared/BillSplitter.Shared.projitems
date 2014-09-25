@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>b07922c7-66ed-431c-bda4-aa2767efda6a</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>BillSplitter</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="$(MSBuildThisFileDirectory)App.xaml">
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="$(MSBuildThisFileDirectory)App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Bill.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\BillItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Participant.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Payment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Transfer.cs" />
+  </ItemGroup>
+</Project>
