@@ -34,10 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="ActionCommand.cs" />
     <Compile Include="Models\Bill.cs" />
     <Compile Include="Models\BillItem.cs" />
     <Compile Include="Models\Participant.cs" />

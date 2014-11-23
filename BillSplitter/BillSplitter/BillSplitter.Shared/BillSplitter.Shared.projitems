@@ -15,10 +15,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Bill.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\BillItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Participant.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Payment.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Transfer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PRIResource Include="$(MSBuildThisFileDirectory)Strings\en-US\Resources.resw" />
+    <PRIResource Include="$(MSBuildThisFileDirectory)Strings\ru-RU\Resources.resw" />
   </ItemGroup>
 </Project>

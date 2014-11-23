@@ -1,12 +1,141 @@
 ﻿<Page
-    x:Class="BillSplitter.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:BillSplitter"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:Models="using:BillSplitter.Models" x:Name="page"
+    x:Class="BillSplitter.MainPage"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    >
+	<Page.DataContext>
+		<local:BillViewModel/>
+	</Page.DataContext>
+	<Page.BottomAppBar>
+		<CommandBar>
+			<AppBarButton x:Uid="btnContacts" x:Name="btnContacts" Icon="Contact" Visibility="Visible" Click="btnContacts_Click"/>
+			<AppBarButton x:Uid="btnAdd" x:Name="btnAdd" Icon="Add" IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" Label="{StaticResource AddCaption}"  Click="btnAdd_Click"/>
+			<AppBarButton x:Uid="btnSelect" x:Name="btnSelect" Icon="Bullets" Click="btnSelect_Click"/>
+			<AppBarButton x:Uid="btnDelete" x:Name="btnDelete" Icon="Delete" Visibility="Collapsed" Click="btnDelete_Click"/>
+		</CommandBar>
+	</Page.BottomAppBar>
+	<Pivot x:Name="pivot" Title="" SelectionChanged="pivot_SelectionChanged">
+		<PivotItem x:Uid="piParticipants" Name="piParticipants" Header="">
+			<Grid x:Name="gridParticipants" Height="445">
+				<ListView x:Name="lvParticipants" ItemsSource="{Binding Bill.Payments}" SelectionMode="None" FontSize="14" Margin="5">
+					<ListView.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal" Width="{Binding ActualWidth, ElementName=piParticipants, Mode=OneWay}">
+								<TextBlock Text="{Binding Participant.FullName}" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock x:Uid="tbPayment" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock Text="{Binding Sum}" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<local:MenuFlyoutServiceTapped.MenuFlyout>
+									<MenuFlyout>
+										<MenuFlyoutItem x:Uid="miRename" Click="MenuFlyoutItemRename_Click"/>
+										<MenuFlyoutItem x:Uid="miDelete" Click="MenuFlyoutItemDelete_Click"/>
+									</MenuFlyout>
+								</local:MenuFlyoutServiceTapped.MenuFlyout>
+							</StackPanel>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+				<Popup x:Name="popupParticipants" Margin="0" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=gridParticipants, Mode=OneWay}">
+					<StackPanel HorizontalAlignment="Stretch" Height="Auto" VerticalAlignment="Stretch" Width="{Binding ActualWidth, ElementName=popupParticipants, Mode=OneWay}">
+						<TextBlock x:Uid="tbName" Margin="5,5,5,0" Text="tbName" FontSize="12"/>
+						<TextBox x:Name="tbNewParticipant" Margin="5" KeyUp="tbNewParticipant_KeyUp"/>
+						<TextBlock x:Uid="tbPay"  Margin="5,5,5,0" Text="tbName" FontSize="12"/>
+						<TextBox x:Name="tbParticipantPay" InputScope="CurrencyAmountAndSymbol" Margin="5" KeyUp="tbParticipantPay_KeyUp"/>
+						<Button x:Name="btnAddParticipant" Content="OK" Click="btnAddParticipant_Click" Margin="5"/>
+					</StackPanel>
+				</Popup>
+			</Grid>
+		</PivotItem>
+		<PivotItem x:Uid="piItems" Header="Покупки"  Name="piItems">
+			<Grid x:Name="gridItems" Height="445">
+				<ListView x:Name="lvItems" ItemsSource="{Binding Bill.Items}" SelectionMode="None" FontSize="14" Margin="5">
+					<ListView.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal"  Width="{Binding ActualWidth, ElementName=piItems, Mode=OneWay}">
+								<TextBlock Text="{Binding Name, Mode=OneWay}" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock x:Uid="tbZa" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock Text="{Binding Price, Mode=OneWay}" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock x:Uid="tbFor" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock Text="{Binding Participants.Count, Mode=OneWay}" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<local:MenuFlyoutServiceTapped.MenuFlyout>
+									<MenuFlyout>
+										<MenuFlyoutItem x:Uid="miRename" Click="MenuFlyoutItemRename_Click"/>
+										<MenuFlyoutItem x:Uid="miDelete" Click="MenuFlyoutItemDelete_Click"/>
+									</MenuFlyout>
+								</local:MenuFlyoutServiceTapped.MenuFlyout>
+							</StackPanel>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+				<Popup x:Name="popupItems" Margin="0" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=gridItems, Mode=OneWay}">
+					<StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="{Binding ActualWidth, ElementName=popupItems, Mode=OneWay}" Height="Auto">
+						<TextBlock x:Uid="tbItemName"  Margin="5,5,5,0" Text="tbName" FontSize="12"/>
+						<TextBox x:Name="tbNewItemName" Margin="5" KeyUp="tbNewItemName_KeyUp"/>
+						<TextBlock x:Uid="tbPrice" Margin="5,5,5,0" Text="tbName" FontSize="12"/>
+						<TextBox x:Name="tbNewItemCost" InputScope = "Number"  Margin="5" KeyUp="tbNewItemCost_KeyUp"/>
+						<TextBlock x:Uid="tbPartList"  Margin="5,5,5,0" Text="tbName" FontSize="12"/>
+						<ListView x:Name="lvParticipantsInItem" ItemsSource="{Binding Bill.Participants}" SelectionMode="Multiple" FontSize="14">
+							<ListView.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding FullName}" FontSize="26" VerticalAlignment="Center" Margin="5" Width="{Binding ActualWidth, ElementName=gridParticipants, Mode=OneWay}" >
+									</TextBlock>
+								</DataTemplate>
+							</ListView.ItemTemplate>
+						</ListView>
+						<Button x:Name="btnAddItem" Content="OK" Click="btnAddItem_Click" Margin="5"/>
+					</StackPanel>
+				</Popup>
+			</Grid>
+		</PivotItem>
+		<PivotItem x:Uid="piResults" Name="piResults" Header="results">
+			<StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock x:Uid="tbBillSum" Text="tbBillSum" FontSize="16" VerticalAlignment="Top" Margin="5,5,5,0" Width="Auto" HorizontalAlignment="Left" />
+					<TextBlock Text="{Binding Bill.BillSum, Mode=OneWay}" FontSize="16" VerticalAlignment="Top" Margin="5,5,5,0" Width="Auto" HorizontalAlignment="Left" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock x:Uid="tbPaySum" Text="tbPaySum" FontSize="16" VerticalAlignment="Top" Margin="5,5,5,0" Width="Auto" HorizontalAlignment="Left" />
+					<TextBlock Text="{Binding Bill.PaySum, Mode=OneWay}" FontSize="16" VerticalAlignment="Top" Margin="5,5,5,0" Width="Auto" HorizontalAlignment="Left" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock x:Uid="tbChange" Text="tbChange"  FontSize="16" VerticalAlignment="Top" Margin="5,5,5,0" Width="Auto" HorizontalAlignment="Left" />
+					<TextBlock Text="{Binding Bill.Change, Mode=OneWay}" FontSize="16" VerticalAlignment="Top" Margin="5,5,5,0" Width="Auto" HorizontalAlignment="Left" />
+				</StackPanel>
+				<TextBlock x:Uid="tbResults" FontSize="20" Text="Кто кому" VerticalAlignment="Center" Margin="5,15,5,5" Width="Auto" />
+				<ListView x:Name="lvResults" ItemsSource="{Binding Bill.Transfers}" SelectionMode="None" FontSize="14">
+					<ListView.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding From.FullName}" FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock Text=" -> " FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+								<TextBlock Text="{Binding To.FullName}" FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+								<TextBlock Text=" : " FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+								<TextBlock Text="{Binding Sum}" FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+							</StackPanel>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+				<ListView x:Name="lvResultsChange" ItemsSource="{Binding Bill.Changes}" SelectionMode="None" FontSize="14">
+					<ListView.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock x:Uid="tbResultsChange" Text="tbResultsChange" FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+								<TextBlock Text=" -> " FontSize="26" VerticalAlignment="Center" Margin="5" Width="Auto" />
+								<TextBlock Text="{Binding Participant.FullName}" FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+								<TextBlock Text=" : " FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+								<TextBlock Text="{Binding Sum}" FontSize="26" VerticalAlignment="Center" Margin="5"  Width="Auto" />
+							</StackPanel>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+			</StackPanel>
+		</PivotItem>
+	</Pivot>
 
-    <Grid/>
+
 </Page>

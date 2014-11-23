@@ -7,9 +7,6 @@ namespace BillSplitter.Models
 {
     public class Transfer
     {
-        private Participant part;
-        private Participant p;
-
         public Transfer(Participant from, Participant to)
         {
             this.From = from;
