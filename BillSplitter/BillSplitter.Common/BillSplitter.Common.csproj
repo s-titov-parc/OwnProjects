@@ -35,7 +35,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ActionCommand.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Models\Bill.cs" />
+    <Compile Include="Models\BillGroup.cs" />
     <Compile Include="Models\BillItem.cs" />
     <Compile Include="Models\Participant.cs" />
     <Compile Include="Models\Payment.cs" />

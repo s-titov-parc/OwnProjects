@@ -1,4 +1,5 @@
 ﻿using BillSplitter.Common;
+using BillSplitter.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,12 +25,12 @@ namespace BillSplitter
 	/// <summary>
 	/// An empty page that can be used on its own or navigated to within a Frame.
 	/// </summary>
-	public sealed partial class MainPage : Page
+	public sealed partial class GroupPage : Page
 	{
 		private NavigationHelper navigationHelper;
 		private ObservableDictionary defaultViewModel = new ObservableDictionary();
 
-		public MainPage()
+		public GroupPage()
 		{
 			this.InitializeComponent();
 
@@ -70,6 +71,8 @@ namespace BillSplitter
 		/// session.  The state will be null the first time a page is visited.</param>
 		private void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
 		{
+			string fName = e.NavigationParameter as string;
+			Load(fName);
 		}
 
 		/// <summary>
@@ -82,6 +85,7 @@ namespace BillSplitter
 		/// serializable state.</param>
 		private void NavigationHelper_SaveState(object sender, SaveStateEventArgs e)
 		{
+			Save();
 		}
 
 		#region NavigationHelper registration
@@ -102,11 +106,35 @@ namespace BillSplitter
 		protected override void OnNavigatedTo(NavigationEventArgs e)
 		{
 			this.navigationHelper.OnNavigatedTo(e);
+
+			string fName = e.Parameter as string;
+			Load(fName);
 		}
 
 		protected override void OnNavigatedFrom(NavigationEventArgs e)
 		{
 			this.navigationHelper.OnNavigatedFrom(e);
+
+			Save();
+		}
+
+		private static object _loadLock = new object();
+
+		private void Load(string fName)
+		{
+			lock (_loadLock)
+			{
+				if (fName != null)
+				{
+					(this.DataContext as GroupViewModel).Group.Name = fName;
+					(this.DataContext as GroupViewModel).Load();
+				}
+			}
+		}
+
+		private void Save()
+		{
+			(this.DataContext as GroupViewModel).Save();
 		}
 
 		#endregion
@@ -118,27 +146,15 @@ namespace BillSplitter
 				CloseEditBillPopup(false);
 				e.Handled = true;
 			}
-			if (this.popupGroup.IsOpen)
-			{
-				CloseEditGroupPopup(false);
-				e.Handled = true;
-			}
 			if (lvBills.SelectionMode == ListViewSelectionMode.Multiple)
 			{
 				lvBills.SelectionMode = ListViewSelectionMode.None;
 				btnDelete.Visibility = Visibility.Collapsed;
 				e.Handled = true;
 			}
-			if (lvGroups.SelectionMode == ListViewSelectionMode.Multiple)
-			{
-				lvGroups.SelectionMode = ListViewSelectionMode.None;
-				btnDelete.Visibility = Visibility.Collapsed;
-				e.Handled = true;
-			}
 		}
 
-		string editedBill = null;
-		string editedGroup = null;
+		Bill editedBill = null;
 
 		private void RefreshAppButtonsState(bool forPopup)
 		{
@@ -156,7 +172,7 @@ namespace BillSplitter
 
 		private void ShowEditBillPopup()
 		{
-			this.tbNewBill.Text = editedBill != null ? editedBill : string.Empty;
+			this.tbNewBill.Text = editedBill != null ? editedBill.Name : string.Empty;
 			tbNewBill.SelectAll();
 			lvBills.Visibility = Visibility.Collapsed;
 			this.popupBill.IsOpen = true;
@@ -169,36 +185,12 @@ namespace BillSplitter
 		{
 			if (saveChanges && !string.IsNullOrWhiteSpace(tbNewBill.Text))
 			{
-				(this.DataContext as MainViewModel).AddOrEditBill(editedBill, tbNewBill.Text);
+				(this.DataContext as GroupViewModel).AddOrEditBill(editedBill, tbNewBill.Text);
 			}
 			editedBill = null;
 			this.popupBill.IsOpen = false;
 			pivot.IsLocked = false;
 			lvBills.Visibility = Visibility.Visible;
-			RefreshAppButtonsState(false);
-		}
-
-		private void ShowEditGroupPopup()
-		{
-			this.tbNewGroup.Text = editedGroup != null ? editedGroup : string.Empty;
-			tbNewGroup.SelectAll();
-			lvGroups.Visibility = Visibility.Collapsed;
-			this.popupGroup.IsOpen = true;
-			pivot.IsLocked = true;
-			RefreshAppButtonsState(true);
-			this.tbNewGroup.Focus(FocusState.Keyboard);
-		}
-
-		private void CloseEditGroupPopup(bool saveChanges)
-		{
-			if (saveChanges && !string.IsNullOrWhiteSpace(tbNewGroup.Text))
-			{
-				(this.DataContext as MainViewModel).AddOrEditGroup(editedGroup, tbNewGroup.Text);
-			}
-			editedGroup = null;
-			this.popupGroup.IsOpen = false;
-			pivot.IsLocked = false;
-			lvGroups.Visibility = Visibility.Visible;
 			RefreshAppButtonsState(false);
 		}
 
@@ -210,9 +202,6 @@ namespace BillSplitter
 				case 0:
 					lvCurrent = lvBills;
 					break;
-				case 1:
-					lvCurrent = lvGroups;
-					break;
 			}
 			return lvCurrent;
 		}
@@ -222,17 +211,15 @@ namespace BillSplitter
 			ShowEditBillPopup();
 		}
 
-		private void btnNewGroup_Click(object sender, RoutedEventArgs e)
-		{
-			ShowEditGroupPopup();
-		}
-
 		private void btnSelect_Click(object sender, RoutedEventArgs e)
 		{
 			ListView lvCurrent = GetCurrentListView();
-			bool nowNotInSelectMode = lvCurrent.SelectionMode == ListViewSelectionMode.None;
-			lvCurrent.SelectionMode = (nowNotInSelectMode && lvCurrent.Items.Count > 0) ? ListViewSelectionMode.Multiple : ListViewSelectionMode.None;
-			btnDelete.Visibility = (nowNotInSelectMode && lvCurrent.Items.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+			if (lvCurrent != null)
+			{
+				bool nowNotInSelectMode = lvCurrent.SelectionMode == ListViewSelectionMode.None;
+				lvCurrent.SelectionMode = (nowNotInSelectMode && lvCurrent.Items.Count > 0) ? ListViewSelectionMode.Multiple : ListViewSelectionMode.None;
+				btnDelete.Visibility = (nowNotInSelectMode && lvCurrent.Items.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+			}
 		}
 
 		private void btnDelete_Click(object sender, RoutedEventArgs e)
@@ -246,9 +233,6 @@ namespace BillSplitter
 					case "lvBills":
 						(this.DataContext as MainViewModel).RemoveBill(item as string);
 						break;
-					case "lvItems":
-						(this.DataContext as MainViewModel).RemoveGroup(item as string);
-						break;
 				}
 			}
 			lvCurrent.SelectionMode = ListViewSelectionMode.None;
@@ -261,10 +245,6 @@ namespace BillSplitter
 			{
 				CloseEditBillPopup(true);
 			}
-			if (popupGroup.IsOpen)
-			{
-				CloseEditGroupPopup(true);
-			}
 		}
 
 		private void btnCancel_Click(object sender, RoutedEventArgs e)
@@ -273,16 +253,11 @@ namespace BillSplitter
 			{
 				CloseEditBillPopup(false);
 			}
-			if (popupGroup.IsOpen)
-			{
-				CloseEditGroupPopup(false);
-			}
 		}
 
 		private void pivot_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			lvBills.SelectionMode = ListViewSelectionMode.None;
-			lvGroups.SelectionMode = ListViewSelectionMode.None;
 			RefreshAppButtonsState(false);
 		}
 
@@ -294,13 +269,8 @@ namespace BillSplitter
 				var currentLv = GetCurrentListView();
 				if (currentLv.Name == "lvBills")
 				{
-					editedBill = (fElement.DataContext as string);
+					editedBill = (fElement.DataContext as Bill);
 					ShowEditBillPopup();
-				}
-				if (currentLv.Name == "lvGroups")
-				{
-					editedGroup = (fElement.DataContext as string);
-					ShowEditGroupPopup();
 				}
 			}
 		}
@@ -313,11 +283,7 @@ namespace BillSplitter
 				var currentLv = GetCurrentListView();
 				if (currentLv.Name == "lvBills")
 				{
-					(this.DataContext as MainViewModel).RemoveBill(fElement.DataContext as string);
-				}
-				if (currentLv.Name == "lvGroups")
-				{
-					(this.DataContext as MainViewModel).RemoveGroup(fElement.DataContext as string);
+					(this.DataContext as GroupViewModel).RemoveBill(fElement.DataContext as string);
 				}
 			}
 		}
@@ -331,30 +297,12 @@ namespace BillSplitter
 			}
 		}
 
-		private void tbNewGroup_KeyUp(object sender, KeyRoutedEventArgs e)
-		{
-			if (e.Key == VirtualKey.Enter)
-			{
-				CloseEditGroupPopup(true);
-				e.Handled = true;
-			}
-		}
-
 		private void Bill_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			var fElement = (e.OriginalSource as FrameworkElement);
 			if (fElement != null)
 			{
 				Frame.Navigate(typeof(BillPage), fElement.DataContext);
-			}
-		}
-
-		private void Group_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			var fElement = (e.OriginalSource as FrameworkElement);
-			if (fElement != null)
-			{
-				Frame.Navigate(typeof(GroupPage), fElement.DataContext);
 			}
 		}
 	}

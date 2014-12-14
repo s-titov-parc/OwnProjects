@@ -7,46 +7,52 @@ using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows.Input;
 using Windows.ApplicationModel.Contacts;
+using Windows.Storage;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace BillSplitter
 {
-	public class BillViewModel
+	public class BillViewModel : INotifyPropertyChanged
 	{
 		public BillViewModel()
 		{
 			Bill = new Bill();
 			Links = new ObservableCollection<PaymentAndItemViewModel>();
 		}
-		public Bill Bill { get; set; }
 
-		public ObservableCollection<PaymentAndItemViewModel> Links { get; set; }
-
-		private ICommand _addObjectCommand;
-		public ICommand AddObjectCommand
+		public async void Load()
 		{
-			get
+			var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Bills", CreationCollisionOption.OpenIfExists);
+			string fName = Bill.Name;
+			var file = await folder.GetFileAsync(fName);
+			var serialized = Utils.Read(file);
+			Bill = serialized.Deserialize<Bill>();
+		}
+
+		public async void Save(bool grouped)
+		{
+			var folder = grouped ? ApplicationData.Current.LocalCacheFolder : await ApplicationData.Current.LocalFolder.CreateFolderAsync("Bills", CreationCollisionOption.OpenIfExists);
+			var file = await folder.CreateFileAsync(Bill.Name, CreationCollisionOption.ReplaceExisting);
+			Utils.Write(file, Bill.Serialize());
+		}
+
+		private Bill _bill;
+		public Bill Bill
+		{
+			get { return _bill; }
+			set
 			{
-				return _addObjectCommand
-					?? (_addObjectCommand = new ActionCommand((obj) =>
-					{
-						if (obj is string && ((string)obj).EndsWith("Participants"))
-						{
-							var contactPicker = new ContactPicker();
-							var contactsTask = contactPicker.PickContactsAsync().AsTask();
-
-							contactsTask.Wait();
-
-							Bill.Participants.Clear();
-
-							foreach (Contact contact in contactsTask.Result)
-							{
-								Bill.Participants.Add(new Participant() { FullName = contact.DisplayName, Id = contact.Id });
-							}
-
-						}
-					}));
+				if (value != _bill)
+				{
+					_bill = value;
+					OnPropertyChanged("Bill");
+				}
 			}
 		}
+
+
+		public ObservableCollection<PaymentAndItemViewModel> Links { get; set; }
 
 		public Participant AddOrEditParticipant(string name, string id, double sum)
 		{
@@ -54,7 +60,7 @@ namespace BillSplitter
 
 			if (participant == null)
 			{
-				participant = new Participant()	{ Id = id };
+				participant = new Participant() { Id = id };
 
 				Bill.Participants.Add(participant);
 			}
@@ -95,6 +101,17 @@ namespace BillSplitter
 			//{
 			//	link.Items.Add(item);
 			//}
+		}
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		protected virtual void OnPropertyChanged([CallerMemberName]string propertyName = null)
+		{
+			var handler = PropertyChanged;
+			if (handler != null)
+			{
+				handler(this, new PropertyChangedEventArgs(propertyName));
+			}
 		}
 	}
 

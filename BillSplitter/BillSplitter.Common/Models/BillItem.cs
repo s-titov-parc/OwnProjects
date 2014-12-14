@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace BillSplitter.Models
 {
+	[DataContract]
 	public class BillItem : INotifyPropertyChanged
-    {
-        public BillItem()
-        {
-            Participants = new ObservableCollection<Participant>();
-        }
+	{
+		public BillItem()
+		{
+			Participants = new ObservableCollection<Participant>();
+		}
 
 		private string _Name;
+
+		[DataMember]
 		public string Name
 		{
 			get { return _Name; }
@@ -29,6 +33,8 @@ namespace BillSplitter.Models
 		}
 
 		private double _Price;
+
+		[DataMember]
 		public double Price
 		{
 			get { return _Price; }
@@ -47,8 +53,9 @@ namespace BillSplitter.Models
 		{
 			get { return String.Format("{0}; {1}", Name, Price, Participants.Count); }
 		}
-		
-        public ObservableCollection<Participant> Participants { get; set; }
+
+		[DataMember]
+		public ObservableCollection<Participant> Participants { get; set; }
 
 		public override string ToString()
 		{

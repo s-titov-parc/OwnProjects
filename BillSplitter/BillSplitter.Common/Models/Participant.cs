@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace BillSplitter.Models
 {
+	[DataContract]
 	public class Participant : INotifyPropertyChanged
 	{
+		[DataMember]
 		public string Id { get; set; }
 
 		private string _FullName;
+
+		[DataMember]
 		public string FullName
 		{
 			get { return _FullName; }

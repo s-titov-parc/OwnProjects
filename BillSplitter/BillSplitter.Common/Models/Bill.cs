@@ -5,9 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Linq;
 using System.Collections.ObjectModel;
+using System.Runtime.Serialization;
 
 namespace BillSplitter.Models
 {
+	[DataContract]
 	public class Bill : INotifyPropertyChanged
 	{
 		private ObservableCollection<Participant> _participants;
@@ -21,6 +23,24 @@ namespace BillSplitter.Models
 			Transfers = new ObservableCollection<Transfer>();
 		}
 
+		
+		private string _Name;
+		[DataMember]
+		public string Name
+		{
+			get { return _Name; }
+			set
+			{
+				if (value != _Name)
+				{
+					_Name = value;
+					OnPropertyChanged("Name");
+				}
+			}
+		}
+		
+
+		[DataMember]
 		public ObservableCollection<Participant> Participants
 		{
 			get { return _participants; }
@@ -32,6 +52,8 @@ namespace BillSplitter.Models
 		}
 
 		private double _BillSum;
+
+		[DataMember]
 		public double BillSum
 		{
 			get { return _BillSum; }
@@ -47,6 +69,8 @@ namespace BillSplitter.Models
 		}
 
 		private double _PaySum;
+
+		[DataMember]
 		public double PaySum
 		{
 			get { return _PaySum; }
@@ -69,12 +93,16 @@ namespace BillSplitter.Models
 			}
 		}
 
+		[DataMember]
 		public ObservableCollection<BillItem> Items { get; set; }
 
+		[DataMember]
 		public ObservableCollection<Payment> Payments { get; set; }
 
+		[DataMember]
 		public ObservableCollection<Payment> Changes { get; set; }
 
+		[DataMember]
 		public ObservableCollection<Transfer> Transfers { get; set; }
 
 		private static double epsilon = 0.000001;

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace BillSplitter.Models
 {
+	[DataContract]
 	public class Payment : INotifyPropertyChanged
     {
         public Payment(Models.Participant participant, double sum)
@@ -12,9 +14,13 @@ namespace BillSplitter.Models
             this.Participant = participant;
             this.Sum = sum;
         }
+
+		[DataMember]
         public Participant Participant { get; set; }
 
 		private double _Sum;
+
+		[DataMember]
 		public double Sum
 		{
 			get { return _Sum; }
